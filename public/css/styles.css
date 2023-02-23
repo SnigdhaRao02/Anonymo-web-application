@@ -1,0 +1,38 @@
+
+
+
+body {
+  background-color: #E8ECEF;
+  width: 100%;
+  
+}
+
+.jumbo-bg{
+  background-color: white;
+  opacity: 0.9;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.card-bg{
+  border-radius: 20px;
+  width: 400px;
+  margin: auto;
+
+}
+
+.app-heading{
+  font-family: 'Anton', sans-serif;
+}
+
+.centered {
+    padding-top: 200px;
+    text-align: center;
+}
+
+.secret-text {
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #000;
+}
