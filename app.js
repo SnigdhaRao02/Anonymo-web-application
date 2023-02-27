@@ -6,6 +6,8 @@ const { default: mongoose } = require("mongoose");
 const encrypt = require('mongoose-encryption');  //2.DB encryption
 require('dotenv').config();
 const md5 = require('md5'); //3.hashing algo
+const bcrypt = require('bcrypt'); //4.salting + hashing
+const saltRounds = 10;
  
 const app = express();
 
@@ -39,33 +41,40 @@ app.get('/register',function(req,res){
 })
 
 app.post('/register', function(req,res){
-    const newUser = new User({
-        email: req.body.username,
-        password: md5(req.body.password)
+
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        const newUser = new User({
+            email: req.body.username,
+            password: hash
+        });
+        newUser.save(function(err){
+            if(err){
+                console.log(err);
+            }else{
+                res.render('secrets');
+            }
+        });
     });
-    newUser.save(function(err){
-        if(err){
-            console.log(err);
-        }else{
-            res.render('secrets');
-        }
-    });
+    
 });
 
 app.post('/login', function(req,res){
     const username = req.body.username;
-    const password = md5(req.body.password);
+    const password = req.body.password;
 
     User.findOne({email:username}, function(err, foundUser){
         if(err){
             console.log(err);
         }else{
             if(foundUser){
-                if(password == foundUser.password){
-                    res.render('secrets');
-                }else{
-                    res.render('login',{ error: "Email or password is incorrect!"});
-                }
+                bcrypt.compare(password, foundUser.password).then (function( result) {
+                    if(result==true){
+                        res.render('secrets');
+                    }else{
+                        res.render('login',{ error: "Email or password is incorrect!"});
+                    }
+                });
+                
             }else{
                 res.render('login',{ error: "Email or password is incorrect!"});
             }
