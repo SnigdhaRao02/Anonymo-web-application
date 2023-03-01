@@ -58,14 +58,17 @@ const User = new mongoose.model('User', userSchema);
 
 //5.4
 passport.use(User.createStrategy());
-passport.serializeUser(function(user, done) {
-    done(null, user.id);
+passport.serializeUser(function (user, cb) {
+    //passport documentation on OAuth
+    process.nextTick(function () {
+      cb(null, { id: user.id, username: user.username, name: user.displayName });
+    });
   });
-   
-  passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err,user){
-        done(err,user);
-    })
+  passport.deserializeUser(function (user, cb) {
+    //passport docs on OAuth
+    process.nextTick(function () {
+      return cb(null, user);
+    });
   });
 
 //6.2
