@@ -41,7 +41,8 @@ mongoose.connect(process.env.MONGO_URI, {useNewUrlParser:true});
 const userSchema = new mongoose.Schema({
     email:String,
     password:String,
-    googleId: String
+    googleId: {type:String, unique:true},
+    secret: Array
 })
 
 ///////DB encryption////////
@@ -58,11 +59,13 @@ const User = new mongoose.model('User', userSchema);
 //5.4
 passport.use(User.createStrategy());
 passport.serializeUser(function(user, done) {
-    done(null, user);
+    done(null, user.id);
   });
    
-  passport.deserializeUser(function(user, done) {
-    done(null, user);
+  passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err,user){
+        done(err,user);
+    })
   });
 
 //6.2
@@ -92,20 +95,21 @@ app.get('/register',function(req,res){
 })
 
 app.get('/secrets',function(req,res){
-    //to not display secrets page when back btn is pressed after logout
-    res.set(
-        'Cache-Control', 
-        'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
-    );
-    if(req.isAuthenticated()){
-        res.render('secrets');  //if user logged in
-    }else{
-        res.redirect('/login'); //if not logged in
-    }
-    
+    User.find({'secret':{$ne:null}}, function(err,users){
+        if(!err){
+            if(users){
+                res.render('secrets',{theSecrets:users});
+            }else{
+                console.log(err);
+            }
+        }else{
+            console.log(err);
+        }
+    })    
 })
 
 app.get('/submit', function(req,res){
+    //to not display secrets page when back btn is pressed after logout
     res.set(
         'Cache-Control', 
         'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
@@ -139,6 +143,30 @@ app.get('/auth/google/anonymo',
     // Successful authentication, redirect secrets page.
     res.redirect('/secrets');
   });
+
+
+
+app.post('/submit', function(req,res){
+    // console.log(submittedSecret);
+    // console.log(req.user);
+    if(req.isAuthenticated()){
+        User.findById(req.user.id, function(err, foundUser){
+            if(err){
+                console.log(err);
+            }else{
+                if(foundUser){
+                    foundUser.secret.push(req.body.secret);
+                    foundUser.save(function(){
+                        res.redirect('/secrets');
+                    });
+                }
+            }
+        })
+    }else{
+        res.redirect('/login');
+    }
+    
+})
 
 
 app.post('/register', function(req,res){
