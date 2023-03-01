@@ -14,6 +14,10 @@ const session = require('express-session');
 const passport = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
 
+//6.1 oauth
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const findOrCreate = require('mongoose-findorcreate'); //6.3- to make findorcreate in 6.2 work
+
  
 const app = express();
 
@@ -33,9 +37,11 @@ app.use(passport.session());
 
 //mongoDB
 mongoose.connect(process.env.MONGO_URI, {useNewUrlParser:true});
+
 const userSchema = new mongoose.Schema({
     email:String,
-    password:String
+    password:String,
+    googleId: String
 })
 
 ///////DB encryption////////
@@ -44,14 +50,33 @@ const userSchema = new mongoose.Schema({
 
 //5.3
 userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(findOrCreate); //6.4
 
 
 const User = new mongoose.model('User', userSchema);
 
 //5.4
 passport.use(User.createStrategy());
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.serializeUser(function(user, done) {
+    done(null, user);
+  });
+   
+  passport.deserializeUser(function(user, done) {
+    done(null, user);
+  });
+
+//6.2
+passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/anonymo"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
 
 
 app.get('/',function(req,res){
@@ -80,6 +105,18 @@ app.get('/secrets',function(req,res){
     
 })
 
+app.get('/submit', function(req,res){
+    res.set(
+        'Cache-Control', 
+        'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
+    );
+    if(req.isAuthenticated()){
+        res.render('submit');  //if user logged in
+    }else{
+        res.redirect('/login'); //if not logged in
+    }
+})
+
 //5.7
 app.get('/logout', function(req,res){
     req.logout(function(err){
@@ -89,6 +126,20 @@ app.get('/logout', function(req,res){
     });
     res.redirect('/');
 })
+
+
+//6.4
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile'] })
+);
+
+app.get('/auth/google/anonymo', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect secrets page.
+    res.redirect('/secrets');
+  });
+
 
 app.post('/register', function(req,res){
 
@@ -151,7 +202,6 @@ app.post('/register', function(req,res){
 //     req.login(newUser, function(err){
 //         if(err){
 //             console.log(err);
-//             res.render('login',{ error: "Email or password is incorrect!"});
 //         }else{
 //             passport.authenticate('local')(req,res,function(){
 //                 res.redirect('/secrets');
