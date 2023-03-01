@@ -69,22 +69,10 @@ passport.serializeUser(function(user, done) {
   });
 
 //6.2
-// passport.use(new GoogleStrategy({
-//     clientID: process.env.CLIENT_ID,
-//     clientSecret: process.env.CLIENT_SECRET,
-//     callbackURL: "http://localhost:3000/auth/google/anonymo"
-//   },
-//   function(accessToken, refreshToken, profile, cb) {
-//     User.findOrCreate({ googleId: profile.id }, function (err, user) {
-//       return cb(err, user);
-//     });
-//   }
-// ));
-
 passport.use(new GoogleStrategy({
-    clientID: process.env.CLIENT_ID_TWO,
-    clientSecret: process.env.CLIENT_SECRET_TWO,
-    callbackURL: "https://anonymo.cyclic.app/auth/google/anonymo"
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/anonymo"
   },
   function(accessToken, refreshToken, profile, cb) {
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
@@ -92,6 +80,7 @@ passport.use(new GoogleStrategy({
     });
   }
 ));
+
 
 
 app.get('/',function(req,res){
