@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const { default: mongoose } = require("mongoose");
+const MongoStore = require('connect-mongo');
 require('dotenv').config();
 // const encrypt = require('mongoose-encryption');  //2.DB encryption
 // const md5 = require('md5'); //3.hashing algo
@@ -24,12 +25,14 @@ const app = express();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.set('trust proxy', 1);
 
 //5.2
 app.use(session({
     secret:process.env.SECRET,
     resave:false,
-    saveUninitialized:true
+    saveUninitialized:true,
+    store: MongoStore.create({mongoUrl: process.env.MONGO_URI})
 }));
 
 app.use(passport.initialize());
