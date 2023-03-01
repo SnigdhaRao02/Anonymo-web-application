@@ -122,10 +122,10 @@ app.get('/secrets',function(req,res){
 
 app.get('/submit', function(req,res){
     //to not display secrets page when back btn is pressed after logout
-    res.set(
-        'Cache-Control', 
-        'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
-    );
+    // res.set(
+    //     'Cache-Control', 
+    //     'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
+    // );
     if(req.isAuthenticated()){
         res.render('submit');  //if user logged in
     }else{
