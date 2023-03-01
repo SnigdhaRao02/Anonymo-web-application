@@ -82,8 +82,8 @@ passport.serializeUser(function(user, done) {
 // ));
 
 passport.use(new GoogleStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+    clientID: process.env.CLIENT_ID_TWO,
+    clientSecret: process.env.CLIENT_SECRET_TWO,
     callbackURL: "https://anonymo.cyclic.app/auth/google/anonymo"
   },
   function(accessToken, refreshToken, profile, cb) {
