@@ -72,10 +72,12 @@ passport.serializeUser(function (user, cb) {
   });
 
 //6.2
+
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://anonymo.cyclic.app/auth/google/anonymo"
+    // callbackURL: "http://localhost:3000/auth/google/anonymo"
+    callbackURL: "https://anonymo.cyclic.app/auth/google/anonymo"
   },
   function(accessToken, refreshToken, profile, cb) {
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
