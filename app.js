@@ -99,17 +99,26 @@ app.get('/register',function(req,res){
 })
 
 app.get('/secrets',function(req,res){
-    User.find({'secret':{$ne:null}}, function(err,users){
-        if(!err){
-            if(users){
-                res.render('secrets',{theSecrets:users});
+    res.set(
+        'Cache-Control', 
+        'no-cache, private, no-store, must-revalidate, max-stal e=0, post-check=0, pre-check=0'
+    );
+    if(req.isAuthenticated()){
+        User.find({'secret':{$ne:null}}, function(err,users){
+            if(!err){
+                if(users){
+                    res.render('secrets',{theSecrets:users});
+                }else{
+                    console.log(err);
+                }
             }else{
                 console.log(err);
             }
-        }else{
-            console.log(err);
-        }
-    })    
+        }) 
+    }else{
+        res.redirect('/login'); //if not logged in
+    }
+       
 })
 
 app.get('/submit', function(req,res){
